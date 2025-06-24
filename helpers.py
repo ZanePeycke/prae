@@ -2,6 +2,7 @@ import asyncio
 import json
 from typing import List, Dict, Any
 from openai import AsyncOpenAI
+from models import EvaluationResult
 
 client = AsyncOpenAI()
 
@@ -260,3 +261,53 @@ async def analyze_image(
 
     except Exception as e:
         return {"analysis": None}
+
+
+async def evaluate_llm_response(
+    llm_response: str, user_profile: Dict[str, Any]
+) -> EvaluationResult:
+    """Evaluate if an LLM response correctly addresses the user's profile and demands.
+
+    Args:
+        llm_response: The LLM's response to evaluate
+        user_profile: The original user profile containing preferences
+    Returns:
+        EvaluationResult object with reasoning and pass/fail status
+    """
+    evaluation_prompt = """
+    Evaluate whether a response correctly addresses a user's apartment search requirements. Be strict.
+    Consider:
+    - Does the response address each desire?
+    - Is the response consistent with the user's preferences?
+    - Are there any contradictions or missing requirements?
+    - Are any tradeoffs reasonable?
+
+    Provide clear reasoning for your evaluation."""
+
+    evaluation_details = f"""
+    User Profile:
+    {json.dumps(user_profile, indent=2)}
+
+    LLM Response to Evaluate:
+    {llm_response}
+    """
+
+    try:
+        completion = await client.beta.chat.completions.parse(
+            model="gpt-4.1",
+            messages=[
+                {
+                    "role": "system",
+                    "content": evaluation_prompt,
+                },
+                {"role": "user", "content": evaluation_details},
+            ],
+            response_format=EvaluationResult,
+        )
+
+        return completion.choices[0].message.parsed
+
+    except Exception as e:
+        return EvaluationResult(
+            reasoning=f"Error during evaluation: {str(e)}", status="fail"
+        )
