@@ -20,6 +20,8 @@ async def call_function_async(name, args):
         return search_by_field(**args)
     if name == "web_search":
         return await web_search(**args)
+    if name == "analyze_image":
+        return await analyze_image(**args)
 
     return {"error": f"Function '{name}' not found"}
 
@@ -222,3 +224,39 @@ def search_by_field(
             results.append(apartment)
 
     return results
+
+
+async def analyze_image(
+    image_url: str,
+    prompt: str = "Analyze this image and describe what you see. Focus on architectural features, room layouts, lighting, and any notable characteristics that would be relevant for someone looking for an apartment.",
+) -> Dict[str, Any]:
+    """Analyze an image using OpenAI's vision capabilities.
+
+    Args:
+        image_url: URL of the image to analyze
+        prompt: Custom prompt for image analysis (optional)
+
+    Returns:
+        Dictionary containing the analysis results and metadata
+    """
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "image_url", "image_url": {"url": image_url}},
+                    ],
+                }
+            ],
+            max_tokens=500,
+        )
+
+        analysis = response.choices[0].message.content
+
+        return {"analysis": analysis}
+
+    except Exception as e:
+        return {"analysis": None}
