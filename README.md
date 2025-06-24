@@ -2,6 +2,7 @@
 Production Ready Agent Engineering
 
 ## W1
+[submission](w1/broker.ipynb)
 ## Task: Personalized broker to find apartments in New York City
 - Agent has access to tools and personal details to find the best apartment for each person.
 - Agent can parse listing and go beyond StreetEasy filters, better understand the renter through large amounts of text, images, etc. (eventually could proactively reach out to schedule viewings)
@@ -28,4 +29,4 @@ Production Ready Agent Engineering
 - Analyze tool usage
 - Re add [Open Street Map MCP](https://github.com/jagan-shanmugam/open-streetmap-mcp) for better directions and explorations
 - Error handling on context window limits for Claude
-- Larger Test Set + Cl
+- Larger Test Set , Async eval, store evals
